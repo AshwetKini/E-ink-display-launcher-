@@ -75,7 +75,7 @@ export const InstalledAppsScreen = () => {
           columnWrapperStyle={styles.row}
           renderItem={({ item }) => {
             const isLaunchable = item.launchable !== false;
-            const label = item.label || item.packageName;
+            const displayLabel = item.label?.trim() ? item.label : item.packageName;
             const iconSource = item.icon ? { uri: `data:image/png;base64,${item.icon}` } : undefined;
             return (
               <TouchableOpacity
@@ -88,10 +88,10 @@ export const InstalledAppsScreen = () => {
                   {iconSource ? (
                     <Image source={iconSource} style={styles.iconImage} resizeMode="contain" />
                   ) : (
-                    <Text style={styles.iconLetter}>{label.charAt(0).toUpperCase()}</Text>
+                    <Text style={styles.iconLetter}>{displayLabel.charAt(0).toUpperCase()}</Text>
                   )}
                 </View>
-                <Text style={styles.gridLabel} numberOfLines={2}>{label}</Text>
+                <Text style={styles.gridLabel} numberOfLines={2}>{displayLabel}</Text>
               </TouchableOpacity>
             );
           }}

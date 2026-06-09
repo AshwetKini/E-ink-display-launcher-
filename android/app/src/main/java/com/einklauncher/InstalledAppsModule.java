@@ -69,10 +69,25 @@ public class InstalledAppsModule extends ReactContextBaseJavaModule {
 
       for (PackageInfo pkg : packages) {
         Intent launchIntent = packageManager.getLaunchIntentForPackage(pkg.packageName);
-        ApplicationInfo appInfo = pkg.applicationInfo;
+        ApplicationInfo appInfo = packageManager.getApplicationInfo(pkg.packageName, 0);
         WritableMap app = Arguments.createMap();
         app.putString("packageName", pkg.packageName);
-        app.putString("label", packageManager.getApplicationLabel(appInfo).toString());
+
+        String label = null;
+        try {
+          CharSequence labelCs = packageManager.getApplicationLabel(appInfo);
+          if (labelCs != null) {
+            label = labelCs.toString();
+          }
+        } catch (Exception ignored) {
+          // fallback below
+        }
+
+        if (label == null || label.trim().isEmpty()) {
+          label = pkg.packageName;
+        }
+
+        app.putString("label", label);
         app.putBoolean("isSystem", (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0);
         app.putBoolean("launchable", launchIntent != null);
         String iconBase64 = encodeAppIcon(appInfo);
