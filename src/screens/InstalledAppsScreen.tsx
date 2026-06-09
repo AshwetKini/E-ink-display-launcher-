@@ -70,24 +70,22 @@ export const InstalledAppsScreen = () => {
           data={apps}
           keyExtractor={item => item.packageName}
           contentContainerStyle={styles.list}
+          numColumns={4}
+          columnWrapperStyle={styles.row}
           renderItem={({ item }) => {
             const isLaunchable = item.launchable !== false;
+            const label = item.label || item.packageName;
             return (
               <TouchableOpacity
-                style={[styles.appItem, !isLaunchable && styles.disabledItem]}
+                style={[styles.gridItem, !isLaunchable && styles.disabledItem]}
                 onPress={() => isLaunchable && launchApp(item.packageName, item.label)}
                 disabled={!isLaunchable}
                 activeOpacity={0.7}
               >
-                <View style={styles.dot} />
-                <View style={styles.appInfo}>
-                  <Text style={styles.appLabel}>{item.label || item.packageName}</Text>
-                  <Text style={styles.appPackage}>
-                    {item.packageName}
-                    {item.isSystem ? ' · system' : ''}
-                    {!isLaunchable ? ' · not launchable' : ''}
-                  </Text>
+                <View style={styles.iconCircle}>
+                  <Text style={styles.iconLetter}>{label.charAt(0).toUpperCase()}</Text>
                 </View>
+                <Text style={styles.gridLabel} numberOfLines={2}>{label}</Text>
               </TouchableOpacity>
             );
           }}
@@ -118,6 +116,36 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.sizes.micro,
     color: COLORS.ghostMid,
     letterSpacing: 0.4,
+  },
+  row: {
+    justifyContent: 'space-between',
+    paddingHorizontal: 0,
+    marginBottom: SPACING.lg,
+  },
+  gridItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: SPACING.lg,
+  },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 14,
+    backgroundColor: COLORS.ghostLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconLetter: {
+    fontFamily: TYPOGRAPHY.serif,
+    fontSize: 28,
+    color: COLORS.inkDark,
+  },
+  gridLabel: {
+    marginTop: SPACING.sm,
+    fontFamily: TYPOGRAPHY.sansSerif,
+    fontSize: TYPOGRAPHY.sizes.small,
+    color: COLORS.inkDark,
+    textAlign: 'center',
   },
   disabledItem: {
     opacity: 0.5,
