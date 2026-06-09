@@ -4,6 +4,11 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.util.Base64;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -13,6 +18,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 public class InstalledAppsModule extends ReactContextBaseJavaModule {
@@ -26,6 +32,33 @@ public class InstalledAppsModule extends ReactContextBaseJavaModule {
   @Override
   public String getName() {
     return "InstalledApps";
+  }
+
+  private String encodeAppIcon(ApplicationInfo appInfo) {
+    try {
+      Drawable iconDrawable = packageManager.getApplicationIcon(appInfo);
+      if (iconDrawable == null) {
+        return null;
+      }
+
+      Bitmap bitmap;
+      if (iconDrawable instanceof BitmapDrawable) {
+        bitmap = ((BitmapDrawable) iconDrawable).getBitmap();
+      } else {
+        int width = iconDrawable.getIntrinsicWidth() > 0 ? iconDrawable.getIntrinsicWidth() : 1;
+        int height = iconDrawable.getIntrinsicHeight() > 0 ? iconDrawable.getIntrinsicHeight() : 1;
+        bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        iconDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        iconDrawable.draw(canvas);
+      }
+
+      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+      bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+      return Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP);
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   @ReactMethod
@@ -42,6 +75,10 @@ public class InstalledAppsModule extends ReactContextBaseJavaModule {
         app.putString("label", packageManager.getApplicationLabel(appInfo).toString());
         app.putBoolean("isSystem", (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0);
         app.putBoolean("launchable", launchIntent != null);
+        String iconBase64 = encodeAppIcon(appInfo);
+        if (iconBase64 != null) {
+          app.putString("icon", iconBase64);
+        }
         apps.pushMap(app);
       }
 

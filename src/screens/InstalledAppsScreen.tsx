@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   FlatList,
   TouchableOpacity,
@@ -16,7 +17,7 @@ import { COLORS, TYPOGRAPHY, SPACING, BORDERS } from '../utils/theme';
 const { InstalledApps } = NativeModules as { InstalledApps?: { getInstalledApps: () => Promise<any>; openApp: (pkg: string) => Promise<any>; } };
 
 export const InstalledAppsScreen = () => {
-  const [apps, setApps] = useState<Array<{ packageName: string; label: string; isSystem: boolean; launchable: boolean }>>([]);
+  const [apps, setApps] = useState<Array<{ packageName: string; label: string; isSystem: boolean; launchable: boolean; icon?: string }>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -75,6 +76,7 @@ export const InstalledAppsScreen = () => {
           renderItem={({ item }) => {
             const isLaunchable = item.launchable !== false;
             const label = item.label || item.packageName;
+            const iconSource = item.icon ? { uri: `data:image/png;base64,${item.icon}` } : undefined;
             return (
               <TouchableOpacity
                 style={[styles.gridItem, !isLaunchable && styles.disabledItem]}
@@ -83,7 +85,11 @@ export const InstalledAppsScreen = () => {
                 activeOpacity={0.7}
               >
                 <View style={styles.iconCircle}>
-                  <Text style={styles.iconLetter}>{label.charAt(0).toUpperCase()}</Text>
+                  {iconSource ? (
+                    <Image source={iconSource} style={styles.iconImage} resizeMode="contain" />
+                  ) : (
+                    <Text style={styles.iconLetter}>{label.charAt(0).toUpperCase()}</Text>
+                  )}
                 </View>
                 <Text style={styles.gridLabel} numberOfLines={2}>{label}</Text>
               </TouchableOpacity>
@@ -139,6 +145,11 @@ const styles = StyleSheet.create({
     fontFamily: TYPOGRAPHY.serif,
     fontSize: 28,
     color: COLORS.inkDark,
+  },
+  iconImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
   },
   gridLabel: {
     marginTop: SPACING.sm,
